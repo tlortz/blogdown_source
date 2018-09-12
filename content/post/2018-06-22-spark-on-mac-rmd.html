@@ -1,44 +1,78 @@
 ---
-title: "Getting up and Running with Apache Spark on Mac OSX"
+title: "Setting Up Apache Spark 2.3 with Jupyter on Mac OSX"
 author: "Tim Lortz"
-date: 2018-06-22
-slug: spark-on-mac-rmd
+date: 2018-08-13
+slug: spark-jupyter-on-mac
 categories: ["Spark"]
-tags: ["Spark"]
+tags: ["Spark","Jupyter"]
 ---
 
 
 
-<p>Through promotional materials from Databricks earlier this year, I had heard about the upcoming Spark 2.3 release. I sat in a demo and was really excited to try out new features like Structured Streaming. But my customer work is all done in Spark 2.2 at the moment, and none of my side projects really required distributed processing at scale. Then I went to Spark Summit earlier this month, and after seeing more Spark 2.3 in action, I decided it was time to get my hands on it.</p>
-<p>I went through the process of installing Spark 2.1 on my MacBook last year … and completely forgot how I did it. I don’t know about you, but the thought of having to find and untangle multiple versions of configuration files and environment variables is usually enough to deter me from starting a project like upgrading Spark. And Spark has a lot of dependencies, which include (for me) HDFS, Python, Scala and Jupyter. But it turned out to not be that bad. The rest of this post will walk through how I did it.</p>
+<!-- ![](../../static/img/apache_spark.png) -->
+<center>
+<img src = "/img/apache_spark.png"></img>
+</center>
+<p>Through promotional materials from Databricks earlier this year, I had heard about the upcoming Spark 2.3 release. I sat in a demo and was really excited to try out new features like Continuous Processing and MLlib in Structured Streaming. But my customer work is all done in Spark 2.2 at the moment, and none of my side projects really required distributed processing at scale. Then I went to Spark Summit earlier this summer, and after seeing more Spark 2.3 in action, I decided it was time to get my hands on it.</p>
+<p>I went through the process of installing Spark 2.1 on my MacBook last year … and completely forgot how I did it. I don’t know about you, but the thought of having to find and untangle multiple versions of configuration files and environment variables is usually enough to deter me from starting a project like upgrading Spark. And Spark has a lot of dependencies, too. But it turned out to not be that bad. The rest of this post will walk through how I did it.</p>
 <div id="preliminaries" class="section level1">
 <h1>Preliminaries</h1>
 <div id="hdfs" class="section level2">
 <h2>HDFS</h2>
-<p>Although you can do some work in Spark without Hadoop (HDFS), you will be limited (why?), so it’s worth installing it. This is probably the hardest part of the process (Find where I got the instructions in the slides)</p>
+<center>
+<img src = "/img/hadoop-logo.png" ></img>
+</center>
+<p>Although you can use Spark in Standalone mode, connecting it to Hadoop (HDFS) is important for a couple of reasons:</p>
+<ul>
+<li>Spark file input &amp; output functions are generally designed to operate on HDFS, especially for the highly efficient Parquet file format</li>
+<li>Although Spark jobs are designed to execute entirely in memory, there might not be sufficient memory to do so, in which case Spark will temporarily cache some data to disk. HDFS is a good choice for that storage</li>
+</ul>
+<p>That being said, HDFS stands for Hadoop <em>Distributed</em> File System, and there’s nothing distributed about storing data on a laptop, so HDFS is probably overkill for our purposes. Regardless, I installed it in order to make full use of Spark, following a great set of <a href="https://dtflaneur.wordpress.com/2015/10/02/installing-hadoop-on-mac-osx-el-capitan/">instructions</a>.</p>
 </div>
 <div id="scala" class="section level2">
 <h2>Scala</h2>
-<p>Spark is written in Scala, so Scala is the first language of Spark. You will need Scala installed, which is (easiest through homebrew)</p>
+<center>
+<img src = "/img/scala-lang.jpeg" style="width:10%"></img>
+</center>
+<p>Spark is written in Scala, so Scala is the first language of Spark. You will need Scala installed, which is easiest through homebrew on a Mac. Although the latest version of Scala is 2.12, Spark only supports Scala up to 2.11, so you’ll need to hard-wire your Scala installation:</p>
+<pre class="bash"><code>brew install scala@2.11</code></pre>
 </div>
 <div id="pythonjupyter" class="section level2">
 <h2>Python/Jupyter</h2>
-<p>For data scientists, Python is typically a familiar language, and thankfully Spark has a Python API (PySpark) that has nearly caught up with the Scala API over time. What’s great about PySpark is that you can switch between Spark objects and Python objects within the same script or notebook, and leverage all the usual libraries you love. I’m most interested in the Anaconda distribution of Python, so I’ll assume that we’re working with Python 3.6 in Anaconda. You certainly don’t <em>have</em> to use the Anaconda distribution, but it will facilitate integration with Jupyter notebook/lab later. (Insert links to setting up Anaconda &amp; Jupyter and make note of where I have it installed)</p>
+<center>
+<img src = "/img/jupyter-logo.png"></img>
+</center>
+<p>For data scientists, Python is typically a second language if not the first, and thankfully Spark has a Python API (PySpark) that has nearly caught up with the Scala API over time. What’s great about PySpark is that you can switch between Spark objects and native Python objects within the same script or notebook, and leverage all the usual Python libraries you love. I’m most interested in the Anaconda distribution of Python, so I’ll assume that we’re working with Python 3.6 in Anaconda. You certainly don’t <em>have</em> to use the Anaconda distribution, but <a href="http://jupyter.org/install">it is strongly encouraged</a> for integration with Jupyter notebook/lab later. Python installation is a sensitive topic that is best left to the reader ;)</p>
 </div>
 </div>
 <div id="spark-installation" class="section level1">
 <h1>Spark Installation</h1>
-<p>There’s this approach: <a href="https://medium.com/luckspark/installing-spark-2-3-0-on-macos-high-sierra-276a127b8b85" class="uri">https://medium.com/luckspark/installing-spark-2-3-0-on-macos-high-sierra-276a127b8b85</a></p>
-<p>But I think it’s easier to go via homebrew. The approach below works well, but needs to be adapted for Spark 2.3 <a href="https://medium.freecodecamp.org/installing-scala-and-apache-spark-on-mac-os-837ae57d283f" class="uri">https://medium.freecodecamp.org/installing-scala-and-apache-spark-on-mac-os-837ae57d283f</a></p>
-<p>Since I already had Spark 2.1 installed, it was enough to go to Terminal and type</p>
+<p>There’s <a href="https://medium.com/luckspark/installing-spark-2-3-0-on-macos-high-sierra-276a127b8b85">this approach</a>, but I think it’s easier to install with Homebrew. <a href="https://medium.freecodecamp.org/installing-scala-and-apache-spark-on-mac-os-837ae57d283f">This approach</a> works well, but needs to be adapted for Spark 2.3. Since I already had Spark 2.1 installed, it was enough to go to Terminal and type</p>
 <pre class="bash"><code>brew upgrade apache-spark</code></pre>
 <p>Voila! Now just make sure that your bashrc or bash_profile settings reflect the brew-installed Spark library as the SPARK_HOME variable. In my case, it’s bash_profile:</p>
 <pre class="bash"><code>vim ~/.bash_profile
 export SPARK_HOME&quot;=/usr/local/Cellar/apache-spark/2.3.0/libexec&quot;</code></pre>
 </div>
+<div id="apache-toree-installation" class="section level1">
+<h1>Apache Toree Installation</h1>
+<p><a href="http://toree.apache.org/docs/current/user/quick-start/">Apache Toree</a> has one main goal: provide the foundation for interactive applications to connect and use Apache Spark. While you can do interactive PySpark work in Jupyter without Toree, Toree makes it possible to also access the Scala, R and SQL APIs for Spark just as easily, simply by toggling the choice of kernel when launching the notebook. In developing Spark applications, it’s extremely advantageous to work interactively in a notebook versus submitting jobs in batch mode only, for example to test edge cases, inspect intermediate output, ensure type conversion, etc. The steps I followed to install Toree were:</p>
+<pre class="bash"><code>cd /usr/local/bin
+git clone https://github.com/apache/incubator-toree.git
+cd incubator-toree
+APACHE_SPARK_VERSION=2.3.0 make clean dist
+make release
+pip install dist/toree-pip/toree-0.3.0.dev1.tar.gz
+jupyter toree install --spark_home=/usr/local/Cellar/apache-spark/2.3.0/libexec --interpreters=Scala,PySpark,SparkR,SQL —user</code></pre>
+</div>
 <div id="tying-up-loose-ends" class="section level1">
 <h1>Tying up Loose Ends</h1>
-<p>Those used to Jupyter notebook or Jupyter lab will enjoy the ability to integrate Spark development into their usual workflows. And you can even do it with the Scala API by leveraging the Apache Toree kernels. Although Toree does provide a PySpark kernel as well, I prefer calling PySpark as a package within my usual Python 3.6 kernel. Here’s how I set that up. 1. Navigate to the kernel.json file associated with my Python 3 Jupyter kernel. In my case, that’s located at ~/anaconda/share/jupyter/kernels/python3 2. Add some environmental variables to the end of the kernel so it knows where to look for PySpark:</p>
+<div id="pyspark-jupyter-kernel" class="section level2">
+<h2>PySpark Jupyter Kernel</h2>
+<p>People used to Jupyter notebook or Jupyter lab will enjoy the ability to integrate Spark development into their usual workflows. And you can even do it with the Scala API by leveraging the Apache Toree kernels. Although Toree does provide a PySpark kernel as well, I prefer calling PySpark as a package within my usual Python 3.6 kernel. Here’s how I set that up.</p>
+<ol style="list-style-type: decimal">
+<li>Navigate to the kernel.json file associated with the Python 3 Jupyter kernel. In my case, that’s located at ~/anaconda/share/jupyter/kernels/python3</li>
+<li>Add some environmental variables to the end of the kernel so it knows where to look for PySpark:</li>
+</ol>
 <pre class="bash"><code>&quot;env&quot;: {
     &quot;SPARK_HOME&quot;: &quot;/usr/local/Cellar/apache-spark/2.3.0/libexec&quot;,
     &quot;SPARK_CONF_DIR&quot;: &quot;/usr/local/Cellar/apache-spark/2.3.0/libexec/conf&quot;,
@@ -48,7 +82,22 @@ export SPARK_HOME&quot;=/usr/local/Cellar/apache-spark/2.3.0/libexec&quot;</code
     &quot;PYTHONPATH&quot;: &quot;/usr/local/Cellar/apache-spark/2.3.0/libexec/python/lib/py4j-0.10.4-src.zip:/usr/local/Cellar/apache-spark/2.3.0/libexec/python/:&quot;,
     &quot;PYSPARK_SUBMIT_ARGS&quot;: &quot;--name &#39;PySparkShell&#39; &#39;pyspark-shell&#39;&quot;
   }</code></pre>
+<p>PySpark should now work within Jupyter notebooks. To access the PySpark API, you’ll need to import the relevant PySpark packages and build a SparkSession object in your running kernel. Here’s a simple way to do that - note that Spark has tons of configuration options that are outside the scope of this post. For those, check out the Apache Spark <a href="https://spark.apache.org/docs/latest/configuration.html">Configuration Guide</a></p>
+<p>A typical PySpark notebook for structured data might start off like this:</p>
+<pre class="python"><code>import pyspark
+from pyspark.sql import SparkSession 
+from pyspark.sql.functions import *
+spark = SparkSession.builder.appName(&quot;myApp&quot;).master(&quot;local[*]&quot;).getOrCreate()
+
+df = spark.read.format(&quot;csv&quot;).option(&quot;header&quot;,&quot;true&quot;).load(pathToCSVFiles)</code></pre>
 </div>
-<div id="demo" class="section level1">
-<h1>Demo</h1>
+<div id="scala-jupyter-kernel" class="section level2">
+<h2>Scala Jupyter Kernel</h2>
+<p>Getting the Scala (and R and SQL) kernels to work is a little trickier. I’ve set this up in both Linux and Mac environments and found it to be a consistent pain. Your results might differ, depending on things like where you installed Toree, what user permissions you enabled, how you installed Scala, etc. The main issue I had was that Toree installed the kernels in a location that Jupyter does not scan when launching a notebook from my default environment. <a href="http://jupyter.readthedocs.io/en/latest/projects/jupyter-directories.html">You have to specify to Jupyter where to look</a>. To rectify this issue, I had to add the following line to my bash_profile:</p>
+<pre class="bash"><code>export JUPYTER_PATH=&quot;/usr/local/share/jupyter:/Users/tim/Library/Jupyter”</code></pre>
+</div>
+</div>
+<div id="conclusion" class="section level1">
+<h1>Conclusion</h1>
+<p>Apache Spark is great for making big data feel small, and accessing Spark through a Jupyter notebook can simplify your data science workflow even more. I hope you found this useful; if you have better ways of setting up any part of the environment described above, please let me know!</p>
 </div>

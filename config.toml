@@ -1,7 +1,10 @@
 baseurl = "https://tlortz.github.io/"
 languageCode = "en-us"
-title = "Maximizing the 80 Percent"
+title = "Tim Lortz"
+topline = "Maximizing the 80 Percent"
 theme = "hugo-bootstrap-premium"
+paginate = 10
+paginatePath = "page"
 googleAnalytics = ""
 disqusShortname = ""
 ignoreFiles = ["\\.Rmd$", "\\.Rmarkdown$", "_files$", "_cache$"]
@@ -14,18 +17,24 @@ showRightSidebar = true
 [permalinks]
     post = "/:year/:month/:day/:slug/"
 
-[[menu.main]]
-    name = "About"
-    url = "/about/"
+[author]
+name = "Tim Lortz"
+
+#[[menu.main]]
+#    name = "About"
+#    url = "/about/"
 [[menu.main]]
     name = "GitHub"
     url = "https://github.com/tlortz"
 [[menu.main]]
     name = "Twitter"
     url = "https://twitter.com/timlortz"
+[[menu.main]]
+    name = "LinkedIn"
+    url = "https://www.linkedin.com/in/tim-lortz-08925937/"
 
 [params]
-    description = "Observations from the worlds of data science, sports, cybersecurity and politics, maybe all at once"
+    description = "Mostly making magic to make magic with data, sometimes making magic with data"
 
     # options for highlight.js (version, additional languages, and theme)
     highlightjsVersion = "9.11.0"
@@ -35,6 +44,8 @@ showRightSidebar = true
 
     MathJaxCDN = "//cdn.bootcss.com"
     MathJaxVersion = "2.7.1"
+    
+    showRightSidebar = true
 
     [params.logo]
     url = "logo.png"
